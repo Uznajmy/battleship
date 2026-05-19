@@ -1,12 +1,8 @@
-[submodule "thirdparty/SDL"]
-	path = thirdparty/SDL
-	url = https://github.com/libsdl-org/SDL
+[submodule "thirdparty/raylib"]
+	path = thirdparty/raylib
+	url = https://github.com/raysan5/raylib
 	shallow = true
-[submodule "thirdparty/SDL_ttf"]
-	path = thirdparty/SDL_ttf
-	url = https://github.com/libsdl-org/SDL_ttf
-	shallow = true
-[submodule "thirdparty/SDL_image"]
-	path = thirdparty/SDL_image
-	url = https://github.com/libsdl-org/SDL_image
+[submodule "thirdparty/raygui"]
+	path = thirdparty/raygui
+	url = https://github.com/raysan5/raygui
 	shallow = true
