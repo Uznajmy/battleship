@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(thirdparty/raylib)
-add_subdirectory(thirdparty/raygui)
+add_subdirectory(thirdparty/raygui/projects/CMake)
 
 file(GLOB INCLUDES "include/*.h" "include/*.hpp")
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
