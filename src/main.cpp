@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <cstddef>
 #include <raylib.h>
 #include <iostream>
 
@@ -46,32 +47,31 @@ struct Statek {
     }
 };
 
-std::vector<Pole> zaznaczonePola;
-std::vector<Pole> trafionePola;
-
-bool isZaznaczone(int x, int y) {
-    for(auto& pole : zaznaczonePola)
-    {
-        if (pole.x == x && pole.y == y) return true;
-    }
-    return false;
-}
-
-bool isTrafione(int x, int y)
+std::vector<Pole> pola;
+Pole none = Pole(-BOARD_SIZE_X, -BOARD_SIZE_Y);
+Pole& GetPole(int x, int y)
 {
-    for(auto& pole : trafionePola)
+    for(auto& pole: pola)
     {
-        if(pole.x == x && pole.y == y) return true;
+        if(pole.x == x && pole.y == y) return pole;
     }
-    return false;
+    return none;
 }
 
 int main(int argc, char* argv[]) {
     InitWindow(800, 600, "Battleship");
     SetTargetFPS(60);
+    InitAudioDevice();
 
-    Statek s = Statek();
-    s.pola = {Pole(1,2), Pole(1, 3), Pole(1,4)};
+    Sound pop = LoadSound("../resources/pop.wav");
+    for(int i = 0; i<BOARD_SIZE_X; i++)
+    {
+        for(int j = 0; j < BOARD_SIZE_Y; j++)
+        {
+            pola.push_back(Pole(i, j));
+        }
+    }
+
 
     GuiSetStyle(DEFAULT, TEXT_SIZE, 32);
     while (true) {
@@ -83,23 +83,12 @@ int main(int argc, char* argv[]) {
         {
             for(int y = 0; y < BOARD_SIZE_Y; y++)
             {
-                std::string buttonText = "";
-                if(isZaznaczone(x, y)) buttonText = "O";
-                if(isTrafione(x, y)) buttonText = "X";
+                std::string buttonText = "X";
+                if(GetPole(x, y).pressed) buttonText = "O";
                 if(GuiButton({RECT_POSITION_CHANGE_X * (x+1), RECT_POSITION_CHANGE_Y * (y+1), RECT_SIZE_X, RECT_SIZE_Y}, buttonText.c_str()))
                 {
-                    if(s.trafiony(x, y))
-                    {
-                        if(s.pola.size() == 0)
-                        {
-                            std::cout << "Gratulacje uzytkowniku, wygrales iPhone 10 Ultra Pro Max Limited Edition\n";
-                        }
-                        else {
-                            std::cout << "Trafiles, ale nie zatopiles\n";
-                        }
-                        trafionePola.push_back(Pole(x,y));
-                    }
-                    zaznaczonePola.push_back(Pole(x, y));
+                    PlaySound(pop);
+                    GetPole(x, y).pressed = !GetPole(x, y).pressed;
 
                 }
             }
