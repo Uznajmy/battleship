@@ -14,10 +14,7 @@ int main(int argc, char* argv[]) {
 
     UI ui(new MainPage());
 
-    while (true) {
-        if (WindowShouldClose()) {
-            break;
-        }
+    while (!WindowShouldClose()) {
 
         BeginDrawing();
         ClearBackground(BLACK);
