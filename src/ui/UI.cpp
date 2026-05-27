@@ -8,21 +8,20 @@ UI::UI(Page* main_page) {
 UI::~UI() {}
 
 void UI::push(Page* page) {
-    pages.push(page);
+    pages.push_back(page);
 }
 void UI::pop() {
     if (pages.empty()) {
         return;
     }
-    delete pages.top();
-    pages.pop();
+    delete pages.back();
 }
 void UI::draw() {
     if (pages.empty()) {
         return;
     }
-    if (pages.top() == nullptr) {
-        pages.pop();
+    while (pages.back() == nullptr) {
+        pages.pop_back();
     }
-    pages.top()->draw();
+    pages.back()->draw();
 }

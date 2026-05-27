@@ -1,10 +1,10 @@
 #pragma once
 
 #include "pages/Page.hpp"
-#include <stack>
+#include <vector>
 
 class UI {
-    std::stack<Page*> pages;
+    std::vector<Page*> pages;
 
 public:
     UI(Page* main_page = nullptr);
