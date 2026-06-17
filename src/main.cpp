@@ -112,7 +112,8 @@ void draw_board(std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships)
 std::vector<std::vector<Cell>> create_cells();
 void check_ships(std::vector<Ship>& ships, Coordinates coords);
 std::vector<Ship> generate_ships(std::vector<std::vector<Cell>>& cells);
-
+void draw_win_screen();
+bool has_game_ended(std::vector<Ship>& ships);
 
 int main(int argc, char* argv[]) {
     srand(time(0));
@@ -130,12 +131,30 @@ int main(int argc, char* argv[]) {
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
-        draw_board(cells, ships);
+        if(has_game_ended(ships)) {
+            draw_win_screen();
+        }
+        else {
+            draw_board(cells, ships);
+        }
         EndDrawing();
     }
 
     CloseWindow();
     return 0;
+}
+
+void draw_win_screen() {
+    GuiLabel((Rectangle){400, 300, 200, 10}, "YOU WON!");
+}
+
+bool has_game_ended(std::vector<Ship>& ships) {
+    for(auto& ship: ships) {
+        if(ship.get_ship_length() != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::vector<std::vector<Cell>> create_cells() {
