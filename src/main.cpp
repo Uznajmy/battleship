@@ -69,9 +69,9 @@ public:
 };
 
 enum class ShipTargetStates {
-  MISSED,
-  HIT,
-  SANK
+  Missed,
+  Hit,
+  Sank
 };
 
 class Ship {
@@ -85,16 +85,16 @@ public:
         return ship_coords.size();
     }
     ShipTargetStates get_status(Coordinates coords) {
-        ShipTargetStates status = ShipTargetStates::MISSED;
+        ShipTargetStates status = ShipTargetStates::Missed;
         for(size_t i = 0; i < ship_coords.size(); i++) {
             if(ship_coords.at(i).x == coords.x && ship_coords.at(i).y == coords.y) {
                 ship_coords.erase(ship_coords.begin() + i);
-                status = ShipTargetStates::HIT;
+                status = ShipTargetStates::Hit;
                 break;
             }
         }
-        if(status == ShipTargetStates::HIT && ship_coords.size() == 0) {
-            status = ShipTargetStates::SANK;
+        if(status == ShipTargetStates::Hit && ship_coords.size() == 0) {
+            status = ShipTargetStates::Sank;
         }
         return status;
     }
@@ -315,21 +315,21 @@ std::vector<Ship> generate_ships(std::vector<std::vector<Cell>>& cells) {
 }
 
 void check_ships(std::vector<Ship>& ships, Coordinates coords) {
-    ShipTargetStates status = ShipTargetStates::HIT;
+    ShipTargetStates status = ShipTargetStates::Hit;
     for(auto& ship : ships) {
         status = ship.get_status(coords);
-        if(status != ShipTargetStates::MISSED) {
+        if(status != ShipTargetStates::Missed) {
             break;
         }
     }
     switch(status) {
-        case(ShipTargetStates::HIT):
+        case(ShipTargetStates::Hit):
             std::cout << "Trafiony ale nie zatopiony\n";
             break;
-        case(ShipTargetStates::MISSED):
+        case(ShipTargetStates::Missed):
             std::cout << "Nie trafiles\n";
             break;
-        case(ShipTargetStates::SANK):
+        case(ShipTargetStates::Sank):
             std::cout << "Trafiony i zatopiony\n";
             break;
     }
