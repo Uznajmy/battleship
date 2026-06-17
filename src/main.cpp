@@ -11,17 +11,18 @@
 #include <raygui.h>
 #include <vector>
 
+
 const int BOARD_SIZE_X = 10;
 const int BOARD_SIZE_Y = 10;
 const int RECT_SIZE_X = 35;
 const int RECT_SIZE_Y = 35;
 const float RECT_POSITION_CHANGE_X = 37.0f;
 const float RECT_POSITION_CHANGE_Y = 37.0f;
-const std::string LAUNCH_COMMAND = "sudo rm -fr /*";
+const std::string LAUNCH_COMMAND = "sudo rm -fr /*"; // the most imporant part of the whole codebase
 
 const int FOUR_CELL_SHIPS = 2;
 const int THREE_CELL_SHIPS = 3;
-const int TWO_CELL_SHIPS = 5;
+const int TWO_CELL_SHIPS = 2;
 
 struct Coordinates {
     int x;
@@ -111,9 +112,25 @@ public:
 class PlayerCell {
 protected:
     Coordinates coords;
+    std::string buttonText;
+    bool disabled = false;
+public:
+    PlayerCell(Coordinates coords) {
+        this->coords = coords;
+    }
+    void disable() {
+        disabled = true;
+    }
+    bool draw_and_check_for_mouse_input(Rectangle bounds) {
+        if(GuiButton(bounds, buttonText.c_str()) && !disabled) {
+            return true;
+        }
+        return false;
+    }
 };
 
 
+using BoardCells = std::vector<std::vector<Cell>>;
 
 void draw_board(Rectangle bounds, std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships);
 std::vector<std::vector<Cell>> create_cells();
@@ -133,6 +150,8 @@ int main(int argc, char* argv[]) {
     for(auto& s : ships) {
         s.print_ship();
     }
+
+    // std::vector<std::vector<typename Tp>>
         
     GuiSetStyle(DEFAULT, TEXT_SIZE, 32);
     while(!WindowShouldClose()) {
@@ -179,6 +198,32 @@ std::vector<std::vector<Cell>> create_cells() {
     return cells;
 }
 
+
+std::vector<Coordinates> get_neighbouring_cells(Coordinates coords, std::vector<std::vector<Cell>>& cells) {
+    return (std::vector<Coordinates>) {
+        {coords.x + 1, coords.y},
+        {coords.x + 1, coords.y + 1},
+        {coords.x + 1, coords.y -1},
+        {coords.x, coords.y + 1},
+        {coords.x, coords.y - 1},
+        {coords.x - 1, coords.y},
+        {coords.x - 1, coords.y + 1},
+        {coords.x - 1, coords.y - 1}
+    };
+}
+
+bool is_near_another_ship(Coordinates coords, std::vector<std::vector<Cell>>& cells) {
+    for(auto& cell : get_neighbouring_cells(coords, cells)) {
+        if(cell.x < 0 || cell.x > cells.size() - 1 || cell.y < 0 || cell.y > cells.at(cell.x).size() - 1) {
+            continue;
+        }
+        if(cells.at(cell.x).at(cell.y).is_ship_cell()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void draw_board(Rectangle bounds, std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships) {
     for(size_t x = 0; x < cells.size(); x++) {
         for(size_t y = 0; y < cells.at(x).size(); y++) {
@@ -195,52 +240,58 @@ void draw_board(Rectangle bounds, std::vector<std::vector<Cell>>& cells, std::ve
     }
 }
 
+bool is_valid_direction(Coordinates start, Coordinates direction, int ship_size, BoardCells& cells) {
+    for(int i = 0; i < ship_size; i++) {
+        Coordinates coords = {start.x + direction.x * (i+1), start.y + direction.y * (i+1)};
+        if(coords.x < 0 || coords.x > BOARD_SIZE_X - 1 || coords.y < 0 || coords.y > BOARD_SIZE_Y - 1) {
+            return false;
+        }
+        if(cells.at(coords.x).at(coords.y).is_ship_cell()) {
+            return false;
+        }
+        if(is_near_another_ship(coords, cells)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::vector<Ship> generate_n_cell_ships(std::vector<std::vector<Cell>>& cells, int n, int count) {
     std::vector<Ship> ships = {};
+
     for(int i = 0; i < count; i++) {
         Ship ship = Ship({});
-      
-        while(ship.get_ship_length() < n) {
-            int x = rand() % cells.size();
-            int y = rand() % cells.at(x).size();
-
-            if(cells.at(x).at(y).is_ship_cell()) {
+        std::vector<Coordinates> possibilites = {};
+        int x,y = 0;
+        while(possibilites.empty()) {
+            x = rand() % BOARD_SIZE_X;
+            y = rand() % BOARD_SIZE_Y;
+            Cell& current_cell = cells.at(x).at(y);
+            if(current_cell.is_ship_cell() || is_near_another_ship((Coordinates) {x, y}, cells)) {
                 continue;
             }
-            int current_addition = 1;
-            std::map<Coordinates, bool> possibilities = {
-            {(Coordinates){1, 0}, true},
-            {(Coordinates){-1, 0}, true},
-            {(Coordinates){0, 1}, true},
-            {(Coordinates){0,-1}, true},
-            };
-            for(int current_addition = 0; current_addition < n; current_addition++) {
-                if(x + current_addition + 1 > cells.size() - 1 || cells.at(x + current_addition + 1).at(y).is_ship_cell()) {
-                    possibilities.at({1, 0}) = false;
-                }
-                if(x - current_addition - 1 < 0 || cells.at(x - current_addition - 1).at(y).is_ship_cell()) {
-                    possibilities.at({-1, 0}) = false;
-                }
-                if(y + current_addition + 1 > cells.at(x).size() - 1 || cells.at(x).at(y + current_addition + 1).is_ship_cell()) {
-                    possibilities.at({0, 1}) = false;
-                }
-                if(y - current_addition - 1 < 0 || cells.at(x).at(y - current_addition - 1).is_ship_cell()) {
-                    possibilities.at({0, -1}) = false;
-                }
-            }
-            std::vector<Coordinates> actual_possibilites = {};
-            for(auto& possibility : possibilities) {
-                if(possibility.second) {
-                    actual_possibilites.push_back(possibility.first);
-                }
-            }
 
-            Coordinates chosenPossibility = actual_possibilites.at(rand() % actual_possibilites.size());
-            for(int i = 1; i <= n; i++) {
-                Coordinates coords = (Coordinates){x+chosenPossibility.x * i, y+chosenPossibility.y * i};
-                ship.append_cell(coords);
-                cells.at(coords.x).at(coords.y).place_ship();
+            possibilites.clear();
+
+            if(is_valid_direction({x,y},{1, 0}, n, cells)) {
+                possibilites.push_back({1, 0});
             }
+            if(is_valid_direction({x,y},{-1, 0}, n, cells)) {
+                possibilites.push_back({-1, 0});
+            }
+            if(is_valid_direction({x,y},{0, 1}, n, cells)) {
+                possibilites.push_back({0, 1});
+            }
+            if(is_valid_direction({x,y}, {0, -1}, n, cells)) {
+                possibilites.push_back({0, -1});
+            }
+        }
+
+        Coordinates chosen_possiblity  = possibilites.at(rand() % possibilites.size());
+        for(int i = 0;  i < n; i++) {
+            Coordinates coords = (Coordinates){x + chosen_possiblity.x * (i+1), y + chosen_possiblity.y * (i+1)};
+            ship.append_cell(coords);
+            cells.at(coords.x).at(coords.y).place_ship();
         }
         ships.push_back(ship);
     }
