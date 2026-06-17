@@ -139,6 +139,7 @@ std::vector<Ship> generate_ships(std::vector<std::vector<Cell>>& cells);
 void draw_win_screen();
 bool has_game_ended(std::vector<Ship>& ships);
 
+
 int main(int argc, char* argv[]) {
     srand(time(0));
     InitWindow(800, 600, "Battleship");
@@ -157,6 +158,7 @@ int main(int argc, char* argv[]) {
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
+
         if(has_game_ended(ships)) {
             draw_win_screen();
         }
