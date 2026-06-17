@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <iterator>
 #include <map>
 #include <raylib.h>
 #include <iostream>
@@ -18,8 +19,9 @@ const float RECT_POSITION_CHANGE_X = 37.0f;
 const float RECT_POSITION_CHANGE_Y = 37.0f;
 const std::string LAUNCH_COMMAND = "sudo rm -fr /*";
 
-const int THREE_CELL_SHIPS = 2;
-const int TWO_CELL_SHIPS = 2;
+const int FOUR_CELL_SHIPS = 2;
+const int THREE_CELL_SHIPS = 3;
+const int TWO_CELL_SHIPS = 5;
 
 struct Coordinates {
     int x;
@@ -106,9 +108,14 @@ public:
     }
 };
 
+class PlayerCell {
+protected:
+    Coordinates coords;
+};
 
 
-void draw_board(std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships);
+
+void draw_board(Rectangle bounds, std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships);
 std::vector<std::vector<Cell>> create_cells();
 void check_ships(std::vector<Ship>& ships, Coordinates coords);
 std::vector<Ship> generate_ships(std::vector<std::vector<Cell>>& cells);
@@ -135,7 +142,11 @@ int main(int argc, char* argv[]) {
             draw_win_screen();
         }
         else {
-            draw_board(cells, ships);
+            draw_board(
+                (Rectangle){0, 0, 0, 0},
+                cells, 
+                ships
+            );
         }
         EndDrawing();
     }
@@ -168,12 +179,12 @@ std::vector<std::vector<Cell>> create_cells() {
     return cells;
 }
 
-void draw_board(std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships) {
+void draw_board(Rectangle bounds, std::vector<std::vector<Cell>>& cells, std::vector<Ship>& ships) {
     for(size_t x = 0; x < cells.size(); x++) {
         for(size_t y = 0; y < cells.at(x).size(); y++) {
             Coordinates coords = cells.at(x).at(y).draw((Rectangle){
-                RECT_POSITION_CHANGE_X * (x+1),
-                RECT_POSITION_CHANGE_Y * (y+1),
+                bounds.x +RECT_POSITION_CHANGE_X * x,
+                bounds.y +RECT_POSITION_CHANGE_Y * y,
                 RECT_SIZE_X,
                 RECT_SIZE_Y
             });
@@ -239,9 +250,11 @@ std::vector<Ship> generate_n_cell_ships(std::vector<std::vector<Cell>>& cells, i
 std::vector<Ship> generate_ships(std::vector<std::vector<Cell>>& cells) {
     std::vector<Ship> ships = {};
 
+    std::vector<Ship> four_cell = generate_n_cell_ships(cells, 4, FOUR_CELL_SHIPS);
     std::vector<Ship> three_cell = generate_n_cell_ships(cells, 3, THREE_CELL_SHIPS);
     std::vector<Ship> two_cell = generate_n_cell_ships(cells, 2, TWO_CELL_SHIPS);
-    
+
+    ships.insert(std::end(ships), std::begin(four_cell), std::end(four_cell));
     ships.insert(std::end(ships), std::begin(three_cell), std::end(three_cell));
     ships.insert(std::end(ships), std::begin(two_cell), std::end(two_cell));
     
